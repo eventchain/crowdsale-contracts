@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+echo "Starting new testrpc-sc instance"
+
+node_modules/.bin/testrpc-sc --gasLimit 0xfffffffffff --port 8555 \
+  --account="0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501200,1000000000000000000000000"  \
+  --account="0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501201,1000000000000000000000000"  \
+  --account="0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501202,1000000000000000000000000"  \
+  --account="0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501203,1000000000000000000000000"  \
+> /dev/null &
+
+testrpc_pid=$!
+
+node_modules/.bin/solidity-coverage
+
+kill -9 $testrpc_pid

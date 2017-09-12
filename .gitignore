@@ -1,0 +1,13 @@
+# artifacts
+ethereum
+truffle/node_modules
+*.swp
+*.swo
+node_modules/
+build/
+.DS_Store/
+/truffle/coverage
+/truffle/coverageEnv/
+coverage.json
+allFiredEvents
+scTopics

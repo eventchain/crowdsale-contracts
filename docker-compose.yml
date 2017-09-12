@@ -1,0 +1,37 @@
+version: "3.2"
+services:
+  node:
+    image: shrink/node:8.4
+    links:
+      - testrpc:testrpc
+      - geth:geth
+    volumes:
+      - ./truffle:/usr/src/app
+    environment:
+      - RPC_HOST=testrpc
+      - TESTNET_HOST=geth
+
+  testrpc:
+    image: shrink/testrpc:4.1
+    command: [
+      "--account", "0x2e27ab03b346e800051f32d516e3fc8698d65945dec8808cc949f109c775a3e4,999000000000000000000",
+      "--unlock", "0xdbeec5bea97620d05c9007f62a0d1542ac4c0b74",
+      "--account", "0x153dd17bec35cd74511ec0e830c8dfc53408e31e2bfa96f17e3df128bb7b733c,9000000000000000000000",
+      "--unlock", "0x27e7a8a480709c7080e608c3b9af92bc209cd891",
+      "--account", "0xb04f51207b7799ee672c5af2fdaf28e76e43565b3211d0d3cdf49da8bd09e3dc,9000000000000000000000",
+      "--unlock", "0x3cA21ae5E2e926D8Be6F6006604828ED5b8953D7",
+      "--account", "0xb04f51207b7799ee672c5af2fdaf28e76e43565b3211d0d3cdf49da8bd09e3dd,9000000000000000000000",
+    ]
+
+  geth:
+    image: ethereum/client-go:alpine
+    command: [
+      "--${ETHEREUM_NETWORK}",
+      "--datadir=/usr/ethereum",
+      "--rpc",
+      "--rpcapi=personal,eth,net,web3",
+      "--rpcaddr=0.0.0.0",
+      "--rpccorsdomain=*"
+    ]
+    volumes:
+      - ${GETH_DATADIR}:/usr/ethereum

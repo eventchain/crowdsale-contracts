@@ -1,0 +1,13 @@
+{
+  "package_name": "token-contracts",
+  "version": "0.0.1",
+  "description": "Secure smart contracts for the EventChain ICO",
+  "keywords": [
+    "solidity",
+    "ethereum",
+    "smart contract",
+    "eventchain",
+    "erc20",
+    "ico"
+  ]
+}

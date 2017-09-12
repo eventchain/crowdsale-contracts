@@ -1,0 +1,60 @@
+{
+  "name": "token-contracts",
+  "version": "0.0.1",
+  "description": "Secure smart contracts for the EventChain ICO",
+  "scripts": {
+    "coverage": "bin/coverage.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:eventchain/token-contracts.git"
+  },
+  "keywords": [
+    "solidity",
+    "ethereum",
+    "smart contract",
+    "eventchain",
+    "erc20",
+    "ico"
+  ],
+  "devDependencies": {
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-es2015": "^6.24.0",
+    "babel-preset-stage-2": "^6.24.1",
+    "babel-preset-stage-3": "^6.24.1",
+    "babel-register": "^6.26.0",
+    "chai": "^4.1.1",
+    "chai-as-promised": "^7.1.1",
+    "chai-bignumber": "^2.0.1",
+    "eslint": "^4.5.0",
+    "eslint-config-eslint": "^4.0.0",
+    "ethereumjs-testrpc": "^4.1.1",
+    "mocha-lcov-reporter": "^1.3.0",
+    "solidity-coverage": "^0.2.2",
+    "solium": "^0.5.5",
+    "truffle": "^3.4.9"
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": false,
+      "node": true
+    },
+    "globals": {
+      "assert": true,
+      "artifacts": true,
+      "contract": true,
+      "web3": true
+    },
+    "extends": "eslint",
+    "rules": {
+      "require-jsdoc": "off"
+    },
+    "parserOptions": {
+      "ecmaVersion": 8,
+      "sourceType": "module",
+      "ecmaFeatures": {
+        "modules": true
+      }
+    }
+  }
+}
