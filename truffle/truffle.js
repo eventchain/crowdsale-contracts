@@ -6,13 +6,7 @@ module.exports = {
     development: {
       host: process.env.RPC_HOST || "localhost",
       port: 8545,
-      network_id: '*'
-    },
-    rinkeby: {
-      host: process.env.TESTNET_HOST || "localhost",
-      port: 8545,
-      network_id: 4,
-      gas: 4612388
+      network_id: "*"
     },
     coverage: {
       host: "localhost",

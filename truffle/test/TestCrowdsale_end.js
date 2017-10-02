@@ -19,9 +19,7 @@ contract("Crowdsale{End}", accounts => {
         evc = await EventChain.new();
         crowdsale = await Crowdsale.new(evc.address, beneficiaryAccount, beneficiaryTwoAccount);
         await evc.setMintAgent(crowdsale.address, true);
-        await crowdsale.startPhase1();
-        await crowdsale.startPhase2();
-        await crowdsale.startPhase3();
+        await crowdsale.openCrowdsale();
         await crowdsale.sendTransaction({ from: investorAccount, value: PHASE3_RAISED });
     });
 
@@ -58,19 +56,19 @@ contract("Crowdsale{End}", accounts => {
             assert.equal(currentState, STATES.CROWDSALE_ENDED);
         });
 
-        it("should claim the phase3 funds for the beneficiaries", async() => {
+        it("should claim the raised funds for the beneficiaries", async() => {
             const fundsAfterClosed = await web3.eth.getBalance(crowdsale.address);
 
             assert.equal(fundsAfterClosed.toNumber(), 0);
         });
 
-        it("should claim 3% of the phase3 funds for the beneficiary two", async() => {
+        it("should claim 3% of the raised funds for the beneficiary two", async() => {
             const beneficiaryTwoBalance = await web3.eth.getBalance(beneficiaryTwoAccount);
 
             assert.equal(beneficiaryTwoBalance.toNumber(), beneficiaryTwoBalanceBefore.add(BENEFICIARY_TWO_CLAIM));
         });
 
-        it("should claim 97% of the phase3 funds for the beneficiary", async() => {
+        it("should claim 97% of the raised funds for the beneficiary", async() => {
             const beneficiaryBalance = await web3.eth.getBalance(beneficiaryAccount);
 
             assert.equal(beneficiaryBalance.toNumber(), beneficiaryBalanceBefore.add(BENEFICIARY_CLAIM));
@@ -78,45 +76,35 @@ contract("Crowdsale{End}", accounts => {
 
         it("should raise an FundsClaimed event for the beneficiaryTwo", async() => {
             const { event, args } = txResult.logs[0],
-                { receiver, claim, crowdsalePhase } = args;
+                { receiver, claim } = args;
 
             assert.equal(event, "FundsClaimed");
             assert.equal(receiver, beneficiaryTwoAccount);
             assert.equal(claim.toNumber(), BENEFICIARY_TWO_CLAIM);
-            assert.equal(crowdsalePhase, "Phase 3");
         });
 
         it("should raise an FundsClaimed event for the beneficiary", async() => {
             const { event, args } = txResult.logs[1],
-                { receiver, claim, crowdsalePhase } = args;
+                { receiver, claim } = args;
 
             assert.equal(event, "FundsClaimed");
             assert.equal(receiver, beneficiaryAccount);
             assert.equal(claim.toNumber(), BENEFICIARY_CLAIM);
-            assert.equal(crowdsalePhase, "Phase 3");
         });
 
-        it("should raise an StateChanged event from 'Phase3' to 'CrowsaleEnded'", async() => {
+        it("should raise an StateChanged event from 'CrowdsaleOpen' to 'CrowsaleEnded'", async() => {
             const { event, args } = txResult.logs[2],
                 { from, to } = args;
 
             assert.equal(event, "StateChanged");
-            assert.equal(from, STATES.PHASE3);
+            assert.equal(from, STATES.CROWDSALE_OPEN);
             assert.equal(to, STATES.CROWDSALE_ENDED);
         });
     });
 
-    describe("State.Phase3", () => {
-        it("should throw an error when startPhase1 is called", async() => {
-            await expectThrow(crowdsale.startPhase1());
-        });
-
-        it("should throw an error when startPhase2 is called", async() => {
-            await expectThrow(crowdsale.startPhase2());
-        });
-
-        it("should throw an error when startPhase3 is called", async() => {
-            await expectThrow(crowdsale.startPhase3());
+    describe("State.CrowdsaleEnded", () => {
+        it("should throw an error when openCrowdsale is called", async() => {
+            await expectThrow(crowdsale.openCrowdsale());
         });
 
         it("should throw an error when endCrowdsale is called more then once", async() => {

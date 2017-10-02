@@ -67,20 +67,12 @@ contract("Crowdsale{Setup}", accounts => {
             await expectThrow(crowdsale.sendTransaction({ from: investorAccount, value: web3.toWei(5, "ether") }));
         });
 
-        it("should raise an error when startPhase2 is called", async() => {
-            await expectThrow(crowdsale.startPhase2());
-        });
-
-        it("should raise an error when startPhase3 is called", async() => {
-            await expectThrow(crowdsale.startPhase3());
-        });
-
         it("should raise an error when endCrowdsale is called", async() => {
             await expectThrow(crowdsale.endCrowdsale());
         });
 
-        it("should raise an error when startPhase1 is called by someone other than the owner", async() => {
-            await expectThrow(crowdsale.startPhase1({ from: investorAccount }));
+        it("should raise an error when openCrowdsale is called by someone other than the owner", async() => {
+            await expectThrow(crowdsale.openCrowdsale({ from: investorAccount }));
         });
     });
 });

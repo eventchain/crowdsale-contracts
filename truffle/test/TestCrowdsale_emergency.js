@@ -15,7 +15,7 @@ contract("Crowdsale{Emergency}", accounts => {
         evc = await EventChain.new();
         crowdsale = await Crowdsale.new(evc.address, beneficiaryAccount, beneficiaryTwoAccount);
         await evc.setMintAgent(crowdsale.address, true);
-        await crowdsale.startPhase1();
+        await crowdsale.openCrowdsale();
     });
 
     describe("halt()", () => {

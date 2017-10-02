@@ -365,17 +365,13 @@ contract EventChain is ReleasableToken, MintableToken {
 contract EventChainCrowdsale is Haltable {
     using SafeMath for uint256;
 
-    enum State{Ready, Phase1, Phase2, Phase3, CrowdsaleEnded}
+    enum State{Ready, CrowdsaleOpen, CrowdsaleEnded}
 
-    uint256 constant public PHASE2_SUPPLY = 21000000 ether;
-    uint256 constant public PHASE3_SUPPLY = 22600000 ether;
-
-    uint256 constant public PHASE1_RATE = 1140;
-    uint256 constant public PHASE2_RATE = 920;
-    uint256 constant public PHASE3_RATE = 800;
+    uint256 constant public EXCHANGE_RATE = 800;
 
     uint256 constant public MIN_INVEST = 10 finney;
     uint256 constant public BTWO_CLAIM_PERCENT = 3;
+    uint256 constant public EASTER_EGG_BONUS = 336; // 42 percent of currentRate
 
     EventChain public evc;
     address public beneficiary;
@@ -388,12 +384,11 @@ contract EventChainCrowdsale is Haltable {
     uint256 public currentTotalSupply;
 
     event StateChanged(State from, State to);
-    event FundsClaimed(address receiver, uint256 claim, string crowdsalePhase);
+    event FundsClaimed(address receiver, uint256 claim);
     event InvestmentMade(
         address investor,
         uint256 weiAmount,
         uint256 tokenAmount,
-        string crowdsalePhase,
         bytes calldata
     );
 
@@ -407,11 +402,15 @@ contract EventChainCrowdsale is Haltable {
         evc = _evc;
     }
 
-    function() payable onlyWhenCrowdsaleIsOpen stopInEmergency external {
+    function() payable inState(State.CrowdsaleOpen) stopInEmergency external {
         assert(msg.data.length <= 68); // 64 bytes data limit plus 4 for the prefix
         assert(msg.value >= MIN_INVEST);
 
-        uint256 tokens = msg.value.mul(currentRate);
+        uint256 bestRate = currentRate;
+        if (msg.data.length != 0) {
+            bestRate = bestRate.add(EASTER_EGG_BONUS);
+        }
+        uint256 tokens = msg.value.mul(bestRate);
         currentSupply = currentSupply.sub(tokens);
         evc.mint(msg.sender, tokens);
         totalRaised = totalRaised.add(msg.value);
@@ -420,84 +419,52 @@ contract EventChainCrowdsale is Haltable {
             msg.sender,
             msg.value,
             tokens,
-            currentStateToString(),
             msg.data
         );
     }
 
-    function startPhase1() onlyOwner inState(State.Ready) stopInEmergency external {
-        currentTotalSupply = evc.mintableSupply().sub(PHASE2_SUPPLY).sub(PHASE3_SUPPLY);
+    function openCrowdsale() onlyOwner inState(State.Ready) stopInEmergency external {
+        currentTotalSupply = evc.mintableSupply();
         currentSupply = currentTotalSupply;
-        currentRate = PHASE1_RATE;
-        currentState = State.Phase1;
+        currentRate = EXCHANGE_RATE;
+        currentState = State.CrowdsaleOpen;
 
         StateChanged(State.Ready, currentState);
     }
 
-    function startPhase2() onlyOwner inState(State.Phase1) stopInEmergency external {
-        phaseClaim();
-
-        currentTotalSupply = currentSupply.add(PHASE2_SUPPLY);
-        currentSupply = currentTotalSupply;
-        currentRate = PHASE2_RATE;
-        currentState = State.Phase2;
-
-        StateChanged(State.Phase1, currentState);
-    }
-
-    function startPhase3() onlyOwner inState(State.Phase2) stopInEmergency external {
-        phaseClaim();
-
-        currentTotalSupply = currentSupply.add(PHASE3_SUPPLY);
-        currentSupply = currentTotalSupply;
-        currentRate = PHASE3_RATE;
-        currentState = State.Phase3;
-
-        StateChanged(State.Phase2, currentState);
-    }
-
-    function endCrowdsale() onlyOwner inState(State.Phase3) stopInEmergency external {
-        phaseClaim();
+    function endCrowdsale() onlyOwner inState(State.CrowdsaleOpen) stopInEmergency external {
+        claimFunds();
 
         currentTotalSupply = 0;
         currentSupply = 0;
         currentRate = 0;
         currentState = State.CrowdsaleEnded;
 
-        StateChanged(State.Phase3, currentState);
+        StateChanged(State.CrowdsaleOpen, currentState);
     }
 
     function currentStateToString() constant returns (string) {
         if (currentState == State.Ready) {
             return "Ready";
-        } else if (currentState == State.Phase1) {
-            return "Phase 1";
-        } else if (currentState == State.Phase2) {
-            return "Phase 2";
-        } else if (currentState == State.Phase3) {
-            return "Phase 3";
+        } else if (currentState == State.CrowdsaleOpen) {
+            return "Crowdsale open";
         } else {
             return "Crowdsale ended";
         }
     }
 
-    function phaseClaim() internal {
+    function claimFunds() internal {
         uint256 beneficiaryTwoClaim = this.balance.div(100).mul(BTWO_CLAIM_PERCENT);
         beneficiaryTwo.transfer(beneficiaryTwoClaim);
-        FundsClaimed(beneficiaryTwo, beneficiaryTwoClaim, currentStateToString());
+        FundsClaimed(beneficiaryTwo, beneficiaryTwoClaim);
 
         uint256 beneficiaryClaim = this.balance;
         beneficiary.transfer(this.balance);
-        FundsClaimed(beneficiary, beneficiaryClaim, currentStateToString());
+        FundsClaimed(beneficiary, beneficiaryClaim);
     }
 
     modifier inState(State _state) {
         assert(currentState == _state);
-        _;
-    }
-
-    modifier onlyWhenCrowdsaleIsOpen() {
-        assert(currentState == State.Phase1 || currentState == State.Phase2 || currentState == State.Phase3);
         _;
     }
 }
